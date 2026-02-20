@@ -1,0 +1,14 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Data files (can be regenerated)
+data/*.db
+
+# IDE
+.vscode/
+.idea/
