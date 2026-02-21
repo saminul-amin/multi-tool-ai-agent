@@ -409,3 +409,114 @@ def process_query(query: str):
             "role": "assistant", "content": f"Error: {err}", "tools": [],
         })
 
+inst_n = _db_count("institutions")
+hosp_n = _db_count("hospitals")
+rest_n = _db_count("restaurants")
+
+with st.sidebar:
+    st.markdown('<div class="sb-logo"><span class="flag">🇧🇩</span> BD Agent</div>',
+                unsafe_allow_html=True)
+    st.markdown("---")
+
+    st.markdown('<div class="sb-section">Data Sources</div>', unsafe_allow_html=True)
+
+    nav = [
+        ("🤖", "All Sources",  "",           True),
+        ("🏫", "Institutions", _fmt(inst_n), False),
+        ("🏥", "Hospitals",    _fmt(hosp_n), False),
+        ("🍽️", "Restaurants",  _fmt(rest_n), False),
+        ("🌐", "Web Search",   "",           False),
+    ]
+    for ic, label, badge, active in nav:
+        cls = "nav on" if active else "nav"
+        b = f'<span class="badge">{badge}</span>' if badge else ""
+        st.markdown(
+            f'<div class="{cls}"><span class="ic">{ic}</span><span>{label}</span>{b}</div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("---")
+
+    for lbl, val, extra in [("Model","Qwen2.5-72B",""),("Framework","LangChain",""),("Status","● Online","ok")]:
+        vcls = f'v {extra}' if extra else 'v'
+        st.markdown(
+            f'<div class="sb-row"><span class="l">{lbl}</span><span class="{vcls}">{val}</span></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("")
+    if st.button("🗑️  Clear Chat", use_container_width=True):
+        st.session_state.messages = []
+        st.session_state.pop("pending_query", None)
+        st.session_state.examples_dismissed = False
+        st.rerun()
+
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+if "examples_dismissed" not in st.session_state:
+  st.session_state.examples_dismissed = False
+
+
+st.markdown(
+    '<div class="topbar">'
+    "<h1>Bangladesh Multi-Tool AI Agent</h1>"
+    "<p>Ask anything about institutions, hospitals, restaurants, or general knowledge</p>"
+    "</div>",
+    unsafe_allow_html=True,
+)
+
+EXAMPLES = [
+    ("hosp", "How many hospitals are in Dhaka division?"),
+    ("inst", "List top colleges in Rajshahi district"),
+    ("rest", "Find restaurants in Chattogram with high ratings"),
+    ("web",  "What is the healthcare policy of Bangladesh?"),
+    ("inst", "How many government institutions are in Sylhet?"),
+    ("hosp", "Show medical college hospitals in Bangladesh"),
+]
+
+welcome_slot = st.empty()
+
+show_welcome = (
+    (not st.session_state.messages)
+    and ("pending_query" not in st.session_state)
+    and (not st.session_state.examples_dismissed)
+)
+
+if show_welcome:
+    with welcome_slot.container():
+        st.markdown(
+            '<div class="welcome">'
+            '  <div class="welcome-card">'
+            '    <div class="icon">🇧🇩</div>'
+            '    <h2>Welcome to Bangladesh AI Agent</h2>'
+            '    <p>I can help you explore data about Bangladesh\'s institutions, '
+            '    hospitals, and restaurants — or answer general knowledge questions.</p>'
+            '    <div class="welcome-meta">'
+            '      <span class="welcome-chip">3 Structured Databases</span>'
+            '      <span class="welcome-chip">Live Web Search</span>'
+            '      <span class="welcome-chip">Tool-Routed Answers</span>'
+            '    </div>'
+            '  </div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+
+        st.markdown(
+            '<div class="example-title">Try one of these queries</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown('<div class="ex-grid">', unsafe_allow_html=True)
+        cols = st.columns(2)
+        for i, (cat, txt) in enumerate(EXAMPLES):
+            with cols[i % 2]:
+                st.markdown(f'<div class="ex-{cat}">', unsafe_allow_html=True)
+                if st.button(txt, key=f"ex_{i}", use_container_width=True):
+                    st.session_state.pending_query = txt
+                    st.session_state.examples_dismissed = True
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+else:
+    welcome_slot.empty()
+
