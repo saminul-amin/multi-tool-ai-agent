@@ -1,3 +1,4 @@
+#Took a huge amount of help from AI! :( 
 import os, sys, sqlite3, warnings
 
 warnings.filterwarnings("ignore")
@@ -270,4 +271,141 @@ details[open] summary{color:var(--text)!important}
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # The custom CSS is also given by AI as I am weak in CSS sadly! :(
+
+DATA_DIR = os.path.join(ROOT, "data")
+
+def _db_count(name: str) -> int:
+    path = os.path.join(DATA_DIR, f"{name}.db")
+    if not os.path.exists(path):
+        return 0
+    con = sqlite3.connect(path)
+    n = con.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
+    con.close()
+    return n
+
+def _fmt(n: int) -> str:
+    return f"{n/1000:.1f}K" if n >= 1000 else str(n)
+
+TOOL_META = {
+    "InstitutionsDBTool": ("inst", "🏫"),
+    "HospitalsDBTool":    ("hosp", "🏥"),
+    "RestaurantsDBTool":  ("rest", "🍽️"),
+    "WebSearchTool":      ("web",  "🌐"),
+}
+
+def _cls(tool_name: str) -> str:
+    for key, (cls, _) in TOOL_META.items():
+        if key.lower().startswith(tool_name.lower()[:5]):
+            return cls
+    n = tool_name.lower()
+    if "institution" in n: return "inst"
+    if "hospital" in n:    return "hosp"
+    if "restaurant" in n:  return "rest"
+    return "web"
+
+def _icon(tool_name: str) -> str:
+    for key, (_, ic) in TOOL_META.items():
+        if key.lower().startswith(tool_name.lower()[:5]):
+            return ic
+    n = tool_name.lower()
+    if "institution" in n: return "🏫"
+    if "hospital" in n:    return "🏥"
+    if "restaurant" in n:  return "🍽️"
+    return "🌐"
+
+def _esc(t: str) -> str:
+    return t.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+
+def html_user(text: str) -> str:
+    return f'<div class="u-wrap"><div class="u-msg">{_esc(text)}</div></div>'
+
+def html_agent(text: str, tools=None) -> str:
+    safe = _esc(text)
+    body = "".join(f"<p>{l}</p>" for l in safe.split("\n") if l.strip()) or f"<p>{safe}</p>"
+    badges = ""
+    if tools:
+        inner = "".join(
+            f'<span class="tb {_cls(t["tool"])}">{_icon(t["tool"])} {t["tool"]}</span>'
+            for t in tools
+        )
+        badges = f'<div class="badges">{inner}</div>'
+    return (
+        '<div class="a-wrap">'
+        '  <div class="a-av">🤖</div>'
+        '  <div class="a-body">'
+        '    <div class="a-head">BD Agent <span class="a-tag">Qwen2.5-72B</span></div>'
+        f'   <div class="a-text">{body}{badges}</div>'
+        '  </div>'
+        '</div>'
+    )
+
+def html_thinking() -> str:
+    return (
+        '<div class="thinking">'
+        '  <div class="a-av" style="width:36px;height:36px;border-radius:50%;'
+        '    background:linear-gradient(135deg,#1e40af,#3b82f6);display:flex;'
+        '    align-items:center;justify-content:center;font-size:18px">🤖</div>'
+        '  <div class="a-body">'
+        '    <div class="a-head">BD Agent <span class="a-tag">thinking…</span></div>'
+        '    <div class="a-text"><div class="dots">'
+        '      <div class="d"></div><div class="d"></div><div class="d"></div>'
+        '    </div></div>'
+        '  </div>'
+        '</div>'
+    )
+
+def html_error(text: str) -> str:
+    return (
+        '<div class="a-wrap">'
+        '  <div class="a-av" style="background:linear-gradient(135deg,#991b1b,#ef4444)">⚠️</div>'
+        '  <div class="a-body">'
+        '    <div class="a-head">System Error</div>'
+        f'   <div class="a-text err-text"><p>{_esc(text)}</p></div>'
+        '  </div>'
+        '</div>'
+    )
+
+@st.cache_resource(show_spinner="Initializing AI Agent…")
+def load_agent():
+    return create_agent_executor()
+
+def process_query(query: str):
+    placeholder = st.empty()
+    placeholder.markdown(html_thinking(), unsafe_allow_html=True)
+    try:
+        agent = load_agent()
+        result = agent.invoke({"input": query})
+        answer = result.get("output", "I couldn't generate an answer.")
+
+        tools_used = []
+        for action, observation in result.get("intermediate_steps", []):
+            tools_used.append({
+                "tool":   action.tool,
+                "input":  str(action.tool_input)[:300],
+                "output": str(observation)[:500],
+            })
+
+        placeholder.empty()
+        st.markdown(html_agent(answer, tools_used), unsafe_allow_html=True)
+
+        if tools_used:
+            with st.expander("🔧 View tool details"):
+                for t in tools_used:
+                    st.markdown(
+                        f'<span class="tb {_cls(t["tool"])}">'
+                        f'{_icon(t["tool"])} {t["tool"]}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.code(f"Query:  {t['input']}\n\nResult: {t['output']}", language="text")
+
+        st.session_state.messages.append({
+            "role": "assistant", "content": answer, "tools": tools_used,
+        })
+    except Exception as exc:
+        placeholder.empty()
+        err = str(exc)
+        st.markdown(html_error(err), unsafe_allow_html=True)
+        st.session_state.messages.append({
+            "role": "assistant", "content": f"Error: {err}", "tools": [],
+        })
 
