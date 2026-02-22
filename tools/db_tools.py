@@ -37,12 +37,15 @@ def _execute_query(db_name: str, sql_query: str) -> str:
 
 @tool
 def InstitutionsDBTool(sql_query: str) -> str:
+    """Execute a SQL query against the institutions database to find information about educational and government institutions in Bangladesh."""
     return _execute_query("institutions", sql_query)
 
 @tool
 def HospitalsDBTool(sql_query: str) -> str:
+    """Execute a SQL query against the hospitals database to find information about hospitals and medical facilities in Bangladesh."""
     return _execute_query("hospitals", sql_query)
 
 @tool
 def RestaurantsDBTool(sql_query: str) -> str:
+    """Execute a SQL query against the restaurants database to find information about restaurants and dining places in Bangladesh."""
     return _execute_query("restaurants", sql_query)

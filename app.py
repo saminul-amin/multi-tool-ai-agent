@@ -445,7 +445,7 @@ with st.sidebar:
         )
 
     st.markdown("")
-    if st.button("🗑️  Clear Chat", use_container_width=True):
+    if st.button("Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.session_state.pop("pending_query", None)
         st.session_state.examples_dismissed = False
