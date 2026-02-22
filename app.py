@@ -520,3 +520,33 @@ if show_welcome:
 else:
     welcome_slot.empty()
 
+for msg in st.session_state.messages:
+    if msg["role"] == "user":
+        st.markdown(html_user(msg["content"]), unsafe_allow_html=True)
+    else:
+        st.markdown(
+            html_agent(msg["content"], msg.get("tools")),
+            unsafe_allow_html=True,
+        )
+        if msg.get("tools"):
+            with st.expander("View tool details"):
+                for t in msg["tools"]:
+                    st.markdown(
+                        f'<span class="tb {_cls(t["tool"])}">'
+                        f'{_icon(t["tool"])} {t["tool"]}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.code(f"Query:  {t['input']}\n\nResult: {t['output']}", language="text")
+
+
+if "pending_query" in st.session_state:
+    q = st.session_state.pop("pending_query")
+    st.session_state.messages.append({"role": "user", "content": q})
+    st.markdown(html_user(q), unsafe_allow_html=True)
+    process_query(q)
+
+prompt = st.chat_input("Ask about Bangladesh's institutions, hospitals, restaurants…")
+if prompt:
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.markdown(html_user(prompt), unsafe_allow_html=True)
+    process_query(prompt)
