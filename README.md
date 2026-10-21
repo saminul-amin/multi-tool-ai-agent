@@ -1,6 +1,6 @@
-# 🇧🇩 Multi-Tool AI Agent for Bangladesh
+# Multi-Tool AI Agent for Bangladesh
 
-An AI-powered agent built with **LangChain** and **Streamlit** that answers data-specific queries from three Bangladesh datasets and uses web search for general knowledge questions — all through a polished chat interface.
+An AI-powered agent built with **LangChain** and **Streamlit** that answers data-specific queries from three Bangladesh datasets and uses web search for general knowledge questions — all through a chat interface.
 
 ![LLM](https://img.shields.io/badge/LLM-Qwen2.5--72B-blue?style=flat-square)
 ![Framework](https://img.shields.io/badge/Agent-LangChain_ReAct-orange?style=flat-square)
@@ -15,7 +15,7 @@ An AI-powered agent built with **LangChain** and **Streamlit** that answers data
 - **Intelligent Query Routing** — The ReAct agent automatically decides which tool to use based on your question.
 - **3 Structured Database Tools** — Query real Bangladesh data on institutions, hospitals, and restaurants via natural language.
 - **Web Search Fallback** — General knowledge questions are routed to DuckDuckGo search.
-- **Beautiful Chat UI** — Dark-themed Streamlit interface with animated responses, tool badges, and example queries.
+- **Chat Interface** — Dark-themed Streamlit UI with tool badges that show which source answered, plus example queries to start from.
 
 ### Available Tools
 
@@ -76,7 +76,7 @@ cp .env.example .env
 Open `.env` and replace the placeholder with your actual token:
 
 ```
-HF_TOKEN=hf_your_actual_token_here # hehe! I won't give mine! :p
+HF_TOKEN=hf_your_actual_token_here
 ```
 
 ### 4. Run the App
@@ -162,6 +162,18 @@ User Query
 
 ---
 
+## Production Notes
+
+This project runs against local SQLite copies of public datasets. Pointing the same pattern at a real business database would need a few additions:
+
+- **Read-only access** — the agent's generated SQL is currently executed as written, so use a read-only connection or a database role that can only `SELECT`.
+- **Query guardrails** — an allow-list of tables and a timeout per query.
+- **Logging** — record each question, the SQL the agent wrote, and the result, so answers can be audited.
+
+The existing limits (5 agent iterations, 50 rows per result, temperature 0.1) keep behaviour predictable but are not a security boundary.
+
+---
+
 ## Key Dependencies
 
 | Package | Purpose |
@@ -177,24 +189,19 @@ See [requirements.txt](requirements.txt) for the full list.
 
 ---
 
-## 📬 Contact
+## Contact
 
-Made by **Saminul Amin** — feel free to reach out!
+Built by **Md. Saminul Amin**.
 
 | Platform | Link |
 |----------|------|
+| Portfolio | [md-saminul-amin.vercel.app](https://md-saminul-amin.vercel.app/) |
 | GitHub | [@saminul-amin](https://github.com/saminul-amin) |
 | LinkedIn | [Md Saminul Amin](https://www.linkedin.com/in/md-saminul-amin/) |
-| WhatsApp | [+8801326874247](https://wa.me/8801326874247) |
+| Email | [saminul.amin@gmail.com](mailto:saminul.amin@gmail.com) |
 
 ---
 
-<div align="center">
+## License
 
-*Made with 💖, mass amounts of caffeine (I'm a Tea Enthusiast), and mass amounts of confidence.*
-
-*Does it work? Probably. Did I test it? Emotionally, yes.*
-
-**If you find a bug, it's a feature. If you find a feature, you're welcome. :P**
-
-</div>
+[MIT](LICENSE)
