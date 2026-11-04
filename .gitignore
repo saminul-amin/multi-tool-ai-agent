@@ -6,9 +6,6 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# Data files (can be regenerated)
-data/*.db
-
 # IDE
 .vscode/
 .idea/

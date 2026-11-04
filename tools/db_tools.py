@@ -8,7 +8,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 def _execute_query(db_name: str, sql_query: str) -> str:
     db_path = os.path.join(DATA_DIR, f"{db_name}.db")
     if not os.path.exists(db_path):
-        return f"Error: Database '{db_name}.db' not found. Run 'python setup_databases.py' first."
+        return f"Error: Database '{db_name}.db' not found in the data/ folder."
 
     try:
         conn = sqlite3.connect(db_path)

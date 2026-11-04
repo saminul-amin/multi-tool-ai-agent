@@ -45,13 +45,13 @@ Begin!
 
 Question: {input}
 Thought:{agent_scratchpad}"""
-) # idk what it says... AI given this message!
+)
 
 def create_llm():
     hf_token = os.getenv("HF_TOKEN")
     if not hf_token:
         raise ValueError(
-            "You need to beg for tokens buddy! ;)"
+            "HF_TOKEN is not set. Copy .env.example to .env and add your HuggingFace token."
         )
 
     endpoint = HuggingFaceEndpoint(
